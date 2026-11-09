@@ -1,39 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Platform,
+  Linking,
 } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import {
+  CameraView,
+  useCameraPermissions,
+  BarcodeScanningResult,
+} from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useFocusEffect, useIsFocused } from 'expo-router';
 import { X, Flashlight, FlashlightOff } from 'lucide-react-native';
 import { ProductService } from '@/services/ProductService';
-import { ScanResult } from '@/types/Product';
 
 export default function ScanScreen() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scanned, setScanned] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
-  const cameraRef = useRef<Camera>(null);
+  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    const getCameraPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
+  // onBarcodeScanned est appelé à chaque image où la caméra voit le code.
+  // Un ref change immédiatement (un state attend le rendu suivant) : il bloque
+  // donc les appels en rafale avant que l'écran ne se mette à jour.
+  const lockRef = useRef(false);
 
-    getCameraPermissions();
-  }, []);
+  // Les onglets restent montés : on relâche le verrou à chaque retour sur
+  // l'écran, sinon le scanner reste bloqué après un premier scan.
+  useFocusEffect(
+    useCallback(() => {
+      lockRef.current = false;
+      setLoading(false);
+      return () => setFlashOn(false);
+    }, []),
+  );
 
-  const handleBarCodeScanned = async (data: string) => {
-    if (scanned) return;
+  const unlock = () => {
+    lockRef.current = false;
+  };
 
-    setScanned(true);
+  const handleScan = async ({ data }: BarcodeScanningResult) => {
+    if (lockRef.current) return;
+    lockRef.current = true;
     setLoading(true);
 
     try {
@@ -49,51 +60,55 @@ export default function ScanScreen() {
         });
       } else {
         Alert.alert(
-          'Produit non trouv\u00e9',
-          'Ce code-barres ne correspond \u00e0 aucun produit dans notre base de donn\u00e9es.',
-          [{ text: 'OK', onPress: () => setScanned(false) }]
+          'Produit non trouvé',
+          'Ce code-barres ne correspond à aucun produit dans notre base de données.',
+          [{ text: 'OK', onPress: unlock }],
         );
       }
     } catch (error) {
-      console.error('Erreur lors de la r\u00e9cup\u00e9ration du produit:', error);
+      console.error('Erreur lors de la récupération du produit :', error);
       Alert.alert(
         'Erreur de connexion',
-        "Impossible de r\u00e9cup\u00e9rer les informations du produit. V\u00e9rifiez votre connexion internet.",
-        [{ text: 'OK', onPress: () => setScanned(false) }]
+        'Impossible de récupérer les informations du produit. Vérifiez votre connexion internet.',
+        [{ text: 'OK', onPress: unlock }],
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleFlash = () => {
-    setFlashOn(!flashOn);
-  };
-
-  const onBarCodeScanned = ({ data }: { data: string }) => {
-    handleBarCodeScanned(data);
-  };
-
-  if (hasPermission === null) {
+  if (!permission) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>Demande d'autorisation cam\u00e9ra...</Text>
+        <Text style={styles.permissionText}>
+          Demande d'autorisation caméra...
+        </Text>
       </View>
     );
   }
 
-  if (hasPermission === false) {
+  if (!permission.granted) {
+    // Après un refus définitif, le système n'affiche plus la demande :
+    // il ne reste que les réglages de l'appli.
+    const onPress = permission.canAskAgain
+      ? requestPermission
+      : () => Linking.openSettings();
     return (
-      <LinearGradient colors={['#FFF8E1', '#F4E6D1']} style={styles.permissionContainer}>
-        <Text style={styles.permissionTitle}>Acc\u00e8s \u00e0 la cam\u00e9ra requis</Text>
+      <LinearGradient
+        colors={['#FFF8E1', '#F4E6D1']}
+        style={styles.permissionContainer}
+      >
+        <Text style={styles.permissionTitle}>Accès à la caméra requis</Text>
         <Text style={styles.permissionText}>
-          ApiMiel a besoin d'acc\u00e9der \u00e0 votre cam\u00e9ra pour scanner les codes-barres des pots de miel.
+          ApiMiel a besoin d'accéder à votre caméra pour scanner les
+          codes-barres des pots de miel.
         </Text>
-        <TouchableOpacity
-          style={styles.permissionButton}
-          onPress={() => Camera.requestCameraPermissionsAsync()}
-        >
-          <Text style={styles.permissionButtonText}>Autoriser l'acc\u00e8s</Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={onPress}>
+          <Text style={styles.permissionButtonText}>
+            {permission.canAskAgain
+              ? "Autoriser l'accès"
+              : 'Ouvrir les réglages'}
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
     );
@@ -101,13 +116,16 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.container}>
-      <Camera
-        ref={cameraRef}
-        style={styles.scanner}
-        type={CameraType.back}
-        flashMode={flashOn ? 'torch' : 'off'}
-        onBarCodeScanned={scanned ? undefined : onBarCodeScanned}
-      />
+      {/* Montée seulement quand l'onglet est visible : caméra et lampe s'éteignent en le quittant. */}
+      {isFocused && (
+        <CameraView
+          style={styles.scanner}
+          facing="back"
+          enableTorch={flashOn}
+          barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a'] }}
+          onBarcodeScanned={handleScan}
+        />
+      )}
 
       <View style={styles.overlay}>
         <LinearGradient
@@ -116,14 +134,14 @@ export default function ScanScreen() {
         >
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => router.back()}
+            onPress={() => router.navigate('/')}
           >
             <X size={28} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Scanner le code-barres</Text>
           <TouchableOpacity
             style={styles.flashButton}
-            onPress={toggleFlash}
+            onPress={() => setFlashOn((on) => !on)}
           >
             {flashOn ? (
               <FlashlightOff size={28} color="white" />
@@ -145,9 +163,9 @@ export default function ScanScreen() {
           style={styles.instructions}
         >
           <Text style={styles.instructionsText}>
-            Pointez votre cam\u00e9ra sur le code-barres du pot de miel
+            Pointez votre caméra sur le code-barres du pot de miel
           </Text>
-          <Text style={styles.honeyEmoji}>\ud83c\udf6f</Text>
+          <Text style={styles.honeyEmoji}>🍯</Text>
 
           {loading && (
             <View style={styles.loadingContainer}>
@@ -168,7 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'space-between',
   },
   header: {

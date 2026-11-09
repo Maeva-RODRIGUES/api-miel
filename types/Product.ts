@@ -6,6 +6,10 @@ export interface Product {
   countries: string;
   origins: string;
   categories: string;
+  // Tags normalisés par Open Food Facts (ex. "en:honeys", "en:france") :
+  // plus fiables que les champs texte saisis par les bénévoles.
+  categories_tags?: string[];
+  origins_tags?: string[];
   nova_group?: number | null;
   image_url: string;
   nutrition_grades: string;
@@ -24,12 +28,16 @@ export interface ScanResult {
   };
 }
 
+export type OriginCategory = 'france' | 'eu' | 'mixed' | 'non_eu' | 'unknown';
+
 export interface ScoreDetails {
   score: number;
   hasOnlyHoney: boolean;
   hasSyrups: boolean;
   isFromFrance: boolean;
   novaGroup: number | null;
+  ingredientsKnown: boolean;
+  origin: OriginCategory;
   details: {
     baseScore: number;
     honeyBonus: number;

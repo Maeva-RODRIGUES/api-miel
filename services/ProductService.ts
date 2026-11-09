@@ -22,6 +22,8 @@ export class ProductService {
           countries: data.product.countries || '',
           origins: data.product.origins || '',
           categories: data.product.categories || '',
+          categories_tags: data.product.categories_tags || [],
+          origins_tags: data.product.origins_tags || [],
           nova_group: data.product.nova_group || null,
           image_url: data.product.image_url || '',
           nutrition_grades: data.product.nutrition_grades || '',

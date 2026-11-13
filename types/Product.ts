@@ -19,13 +19,8 @@ export interface Product {
 
 export interface ScanResult {
   product: Product;
-  score: number;
-  analysis: {
-    hasOnlyHoney: boolean;
-    hasSyrups: boolean;
-    isFromFrance: boolean;
-    novaGroup: number | null;
-  };
+  // null quand le produit ne semble pas être un miel.
+  score: ScoreDetails | null;
 }
 
 export type OriginCategory = 'france' | 'eu' | 'mixed' | 'non_eu' | 'unknown';

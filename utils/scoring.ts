@@ -69,6 +69,14 @@ export function normalize(text: string | null | undefined): string {
     .trim();
 }
 
+/**
+ * Fiche Open Food Facts sans aucune catégorie : on ne peut pas savoir si
+ * c'est un miel, ce qui est différent de « ce n'est pas un miel ».
+ */
+export function hasNoCategory(product: Product): boolean {
+  return !product.categories_tags?.length && !normalize(product.categories);
+}
+
 export function isHoney(product: Product): boolean {
   if (product.categories_tags?.includes('en:honeys')) return true;
   return HONEY_WORD.test(normalize(product.categories));
@@ -177,4 +185,45 @@ export function computeScore(product: Product): ScoreDetails | null {
       novaPenalty,
     },
   };
+}
+
+export interface BreakdownLine {
+  label: string;
+  points: number;
+}
+
+const ORIGIN_LABELS: Record<OriginCategory, string> = {
+  france: 'Origine : France',
+  eu: 'Origine : Union européenne',
+  mixed: 'Origine : mélange UE / non UE',
+  non_eu: 'Origine : hors Union européenne',
+  unknown: 'Origine non renseignée',
+};
+
+/** Traduit le détail du score en lignes lisibles pour l'écran Résultats. */
+export function scoreBreakdown(result: ScoreDetails): BreakdownLine[] {
+  const { details } = result;
+  const honeyLabel = result.hasOnlyHoney
+    ? 'Ingrédients : 100 % miel'
+    : !result.ingredientsKnown
+      ? 'Miel présumé pur (ingrédients non renseignés)'
+      : 'Ingrédients autres que du miel';
+
+  return [
+    { label: 'Score de base', points: details.baseScore },
+    { label: honeyLabel, points: details.honeyBonus },
+    {
+      label: result.hasSyrups
+        ? 'Sirop ou sucre ajouté détecté'
+        : 'Aucun sirop ni sucre ajouté',
+      points: details.syrupPenalty,
+    },
+    { label: ORIGIN_LABELS[result.origin], points: details.originPenalty },
+    {
+      label: result.novaGroup
+        ? `Transformation : NOVA ${result.novaGroup}`
+        : 'Transformation (NOVA) non renseignée',
+      points: details.novaPenalty,
+    },
+  ];
 }

@@ -16,8 +16,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useIsFocused } from 'expo-router';
 import { X, Flashlight, FlashlightOff } from 'lucide-react-native';
 import { ProductService } from '@/services/ProductService';
+import { useScan } from '@/context/ScanContext';
+import { computeScore } from '@/utils/scoring';
 
 export default function ScanScreen() {
+  const { setLastScan } = useScan();
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
@@ -51,13 +54,10 @@ export default function ScanScreen() {
       const product = await ProductService.getProduct(data);
 
       if (product) {
-        router.push({
-          pathname: '/results',
-          params: {
-            productData: JSON.stringify(product),
-            barcode: data,
-          },
-        });
+        // Le résultat est rangé dans le contexte : l'écran Résultats le lit
+        // directement, sans paramètres d'URL.
+        setLastScan({ product, score: computeScore(product) });
+        router.navigate('/results');
       } else {
         Alert.alert(
           'Produit non trouvé',

@@ -1,6 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { Product } from '@/types/Product';
-import { computeScore, normalize } from '@/utils/scoring';
+import {
+  computeScore,
+  hasNoCategory,
+  normalize,
+  scoreBreakdown,
+} from '@/utils/scoring';
 
 // Construit un produit avec des valeurs neutres, à surcharger par test.
 function product(overrides: Partial<Product>): Product {
@@ -167,5 +172,30 @@ describe('computeScore', () => {
     expect(
       computeScore(product({ ...base, origins: 'Récolté en France' }))!.origin,
     ).toBe('france');
+  });
+});
+
+describe('scoreBreakdown', () => {
+  it('liste les lignes du score, dont la somme redonne le score', () => {
+    const result = computeScore(mielSansIngredients)!;
+    const lines = scoreBreakdown(result);
+    expect(lines.map((line) => line.label)).toContain(
+      'Miel présumé pur (ingrédients non renseignés)',
+    );
+    expect(lines.reduce((sum, line) => sum + line.points, 0)).toBe(
+      result.score,
+    );
+  });
+});
+
+describe('hasNoCategory', () => {
+  // Fiche réelle 3335440125004 (miel de sarrasin) : seule la photo est saisie.
+  it('détecte une fiche sans catégorie', () => {
+    expect(hasNoCategory(product({ code: '3335440125004' }))).toBe(true);
+  });
+
+  it('ne signale pas une fiche catégorisée', () => {
+    expect(hasNoCategory(mielDeFrance)).toBe(false);
+    expect(hasNoCategory(product({ categories: 'Sirops' }))).toBe(false);
   });
 });

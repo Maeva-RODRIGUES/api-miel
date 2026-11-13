@@ -11,7 +11,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style="light" />
+      {/* Fonds crème : icônes sombres. L'écran Scanner passe en clair. */}
+      <StatusBar style="dark" />
     </ScanProvider>
   );
 }

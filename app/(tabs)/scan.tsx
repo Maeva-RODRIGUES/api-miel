@@ -13,6 +13,7 @@ import {
   BarcodeScanningResult,
 } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { router, useFocusEffect, useIsFocused } from 'expo-router';
 import { X, Flashlight, FlashlightOff } from 'lucide-react-native';
 import { ProductService } from '@/services/ProductService';
@@ -118,6 +119,9 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Fond noir de la caméra : icônes de la barre d'état en blanc, seulement
+          tant que l'onglet est visible (les onglets restent montés). */}
+      {isFocused && <StatusBar style="light" />}
       {/* Montée seulement quand l'onglet est visible : caméra et lampe s'éteignent en le quittant. */}
       {isFocused && (
         <CameraView

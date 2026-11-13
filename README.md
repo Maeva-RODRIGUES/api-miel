@@ -10,7 +10,10 @@
 
 - 📷 **Scanner** un code-barres de pot de miel
 - 🧠 **Analyser** la composition et l'origine via Open Food Facts
-- 🥇 **Obtenir** un score de pureté entre 0 et 100
+- 🥇 **Obtenir** un score de pureté entre 0 et 100, avec le détail des points
+- 🕘 **Retrouver** les pots déjà scannés dans l'historique (50 derniers, enregistrés sur le téléphone)
+- ⭐ **Mettre en favoris** les miels à racheter et les filtrer en un geste
+- 📝 **Compléter** une fiche Open Food Facts vide grâce à un lien direct
 - ✨ Design épuré et animations ludiques pour une meilleure expérience utilisateur
 
 ## 🧪 Comment ça marche ?
@@ -23,6 +26,17 @@
 
 3. **Découvrez**  
    Obtenez un **score ApiMiel** allant de 0 (pas pur du tout) à 100 (miel pur garanti 🍯).
+
+4. **Retrouvez**  
+   Chaque scan rejoint l'onglet **Historique**. Touchez un pot pour revoir son résultat, ou l'étoile ⭐ pour l'ajouter à vos favoris. Le filtre **★ Favoris** n'affiche que ceux-là.
+
+## 🕘 Historique et favoris
+
+- L'historique garde les **50 derniers pots** scannés, du plus récent au plus ancien. Rescanner un pot le remonte en tête, sans doublon.
+- Les **favoris ne sont jamais perdus** : au-delà de 50 pots, ce sont les plus anciens non favoris qui sortent, et la corbeille vide l'historique en conservant les favoris.
+- Tout est enregistré **localement sur le téléphone** (AsyncStorage) : aucun compte, aucune donnée envoyée.
+
+La logique est dans `utils/history.ts`.
 
 ## 🧮 Calcul du score
 
@@ -60,6 +74,7 @@ Les règles sont regroupées dans `utils/scoring.ts` (objet `SCORING`).
 - **Expo Router**
 - **StyleSheet** React Native + **expo-linear-gradient**
 - **expo-camera** (scan de codes-barres)
+- **AsyncStorage** (historique et favoris sur le téléphone)
 - **Open Food Facts API**
 - **Jest** pour les tests (`npx jest`)
 
@@ -71,6 +86,11 @@ cd api-miel
 npm install
 npx expo start
 ```
+
+Si le téléphone n'arrive pas à joindre l'ordinateur sur le réseau local, passez par un tunnel : `npx expo start --tunnel ngrok`.
+
+Après l'ajout d'une dépendance, relancez le serveur en vidant le cache : `npx expo start -c`.
+
 ## 🧑‍💻 Contributrice
 
 Développé avec amour par Maëva Rodrigues 💛

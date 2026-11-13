@@ -1,8 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Home, Scan, BarChart3 } from 'lucide-react-native';
 import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
+  // La barre doit passer au-dessus des boutons de navigation Android / de
+  // l'indicateur iOS : sa hauteur inclut la marge basse du téléphone.
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -11,9 +16,9 @@ export default function TabLayout() {
           backgroundColor: '#F4E6D1',
           borderTopColor: '#D4A574',
           borderTopWidth: 2,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          height: 60 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
+          paddingTop: 8,
         },
         tabBarActiveTintColor: '#B8860B',
         tabBarInactiveTintColor: '#D4A574',
@@ -21,7 +26,8 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: '600',
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

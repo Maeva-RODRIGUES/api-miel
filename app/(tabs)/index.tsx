@@ -5,22 +5,31 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Scan, Sparkles, Shield, Award } from 'lucide-react-native';
 import { HoneyDropAnimation } from '@/components/HoneyDropAnimation';
 import { AnimatedBee } from '@/components/AnimatedBee';
 
-const { width, height } = Dimensions.get('window');
-
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <LinearGradient colors={['#FFF8E1', '#F4E6D1', '#E6D3A3']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <LinearGradient
+      colors={['#FFF8E1', '#F4E6D1', '#E6D3A3']}
+      style={styles.container}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <HoneyDropAnimation score={85} />
-        
+
         {/* Header avec logo + abeille animée */}
         <View style={styles.header}>
           <AnimatedBee />
@@ -52,7 +61,7 @@ export default function HomeScreen() {
         {/* Fonctionnalités */}
         <View style={styles.featuresContainer}>
           <Text style={styles.featuresTitle}>Comment ça marche ?</Text>
-          
+
           <View style={styles.featureCard}>
             <View style={styles.featureIcon}>
               <Scan size={24} color="#B8860B" />
@@ -109,8 +118,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 100,
+    paddingBottom: 32,
   },
   header: {
     alignItems: 'center',

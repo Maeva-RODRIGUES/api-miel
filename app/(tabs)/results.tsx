@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Scan, Info, ExternalLink } from 'lucide-react-native';
 import { HoneyDropAnimation } from '@/components/HoneyDropAnimation';
 import { useScan } from '@/context/ScanContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hasNoCategory, scoreBreakdown } from '@/utils/scoring';
 
 // Mêmes seuils que les gouttes de HoneyDropAnimation.
@@ -48,6 +49,7 @@ function ScanAnotherButton() {
 
 export default function ResultsScreen() {
   const { lastScan } = useScan();
+  const insets = useSafeAreaInsets();
 
   return (
     <LinearGradient
@@ -55,7 +57,10 @@ export default function ResultsScreen() {
       style={styles.container}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {!lastScan ? (
@@ -198,8 +203,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 100,
+    paddingBottom: 32,
   },
   emptyState: {
     flex: 1,

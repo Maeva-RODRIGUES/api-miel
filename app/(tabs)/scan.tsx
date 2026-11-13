@@ -17,6 +17,7 @@ import { router, useFocusEffect, useIsFocused } from 'expo-router';
 import { X, Flashlight, FlashlightOff } from 'lucide-react-native';
 import { ProductService } from '@/services/ProductService';
 import { useScan } from '@/context/ScanContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { computeScore } from '@/utils/scoring';
 
 export default function ScanScreen() {
@@ -25,6 +26,7 @@ export default function ScanScreen() {
   const [loading, setLoading] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
 
   // onBarcodeScanned est appelé à chaque image où la caméra voit le code.
   // Un ref change immédiatement (un state attend le rendu suivant) : il bloque
@@ -130,7 +132,7 @@ export default function ScanScreen() {
       <View style={styles.overlay}>
         <LinearGradient
           colors={['rgba(0,0,0,0.8)', 'transparent']}
-          style={styles.header}
+          style={[styles.header, { paddingTop: insets.top + 16 }]}
         >
           <TouchableOpacity
             style={styles.closeButton}
@@ -193,7 +195,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 30,
   },
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
   },
   instructions: {
     alignItems: 'center',
-    paddingBottom: 120,
+    paddingBottom: 32,
     paddingHorizontal: 20,
     paddingTop: 40,
   },

@@ -24,6 +24,32 @@
 3. **Découvrez**  
    Obtenez un **score ApiMiel** allant de 0 (pas pur du tout) à 100 (miel pur garanti 🍯).
 
+## 🧮 Calcul du score
+
+Chaque miel part d'un score de base de **60**, puis gagne ou perd des points :
+
+| Critère | Points |
+|---|---|
+| Ingrédients : 100 % miel | **+30** |
+| Ingrédients non renseignés (miel présumé pur, la loi européenne interdit tout ajout) | **+15** |
+| Sirop ou sucre ajouté détecté | **−50** |
+| Origine : France | 0 |
+| Origine : Union européenne | −5 |
+| Origine non renseignée | −10 |
+| Origine : mélange UE / non UE, ou hors UE | −15 |
+| Transformation NOVA 3 | −10 |
+| Transformation NOVA 4 | −25 |
+
+Le score final est borné entre 0 et 100 :
+
+- **80 et plus** : excellent miel
+- **50 à 79** : miel correct
+- **moins de 50** : miel à éviter
+
+Un produit qu'Open Food Facts ne classe pas comme miel n'est pas noté. Si sa fiche n'a aucune catégorie, l'application invite à la compléter sur Open Food Facts.
+
+Les règles sont regroupées dans `utils/scoring.ts` (objet `SCORING`).
+
 ## 💾 Données utilisées
 
 - [Open Food Facts](https://openfoodfacts.org) — base de données libre sur les produits alimentaires.
@@ -32,8 +58,10 @@
 
 - **React Native** (via Expo)
 - **Expo Router**
-- **Tailwind CSS / NativeWind**
+- **StyleSheet** React Native + **expo-linear-gradient**
+- **expo-camera** (scan de codes-barres)
 - **Open Food Facts API**
+- **Jest** pour les tests (`npx jest`)
 
 ## 📱 Installation
 

@@ -38,40 +38,4 @@ export class ProductService {
       throw error;
     }
   }
-
-  static async searchProducts(query: string): Promise<Product[]> {
-    try {
-      const response = await fetch(
-        `${this.BASE_URL}/search?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.products) {
-        return data.products.map((product: any) => ({
-          code: product.code,
-          product_name: product.product_name || product.product_name_fr || 'Produit sans nom',
-          brands: product.brands || '',
-          ingredients_text: product.ingredients_text || product.ingredients_text_fr || '',
-          countries: product.countries || '',
-          origins: product.origins || '',
-          categories: product.categories || '',
-          nova_group: product.nova_group || null,
-          image_url: product.image_url || '',
-          nutrition_grades: product.nutrition_grades || '',
-          ecoscore_grade: product.ecoscore_grade || '',
-          ingredients_analysis_tags: product.ingredients_analysis_tags || [],
-        }));
-      }
-      
-      return [];
-    } catch (error) {
-      console.error('Erreur lors de la recherche de produits:', error);
-      throw error;
-    }
-  }
 }

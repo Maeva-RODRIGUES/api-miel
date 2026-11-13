@@ -227,3 +227,10 @@ export function scoreBreakdown(result: ScoreDetails): BreakdownLine[] {
     },
   ];
 }
+
+// Mêmes seuils que les gouttes de HoneyDropAnimation.
+export function verdict(score: number) {
+  if (score >= 80) return { label: 'Excellent miel', color: '#B8860B' };
+  if (score >= 50) return { label: 'Miel correct', color: '#E08A00' };
+  return { label: 'Miel à éviter', color: '#D9472B' };
+}

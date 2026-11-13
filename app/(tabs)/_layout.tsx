@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Scan, BarChart3 } from 'lucide-react-native';
+import { Home, Scan, BarChart3, History } from 'lucide-react-native';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,6 +57,17 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <View style={styles.iconContainer}>
               <BarChart3 size={size} color={color} strokeWidth={2.5} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Historique',
+          tabBarIcon: ({ size, color }) => (
+            <View style={styles.iconContainer}>
+              <History size={size} color={color} strokeWidth={2.5} />
             </View>
           ),
         }}

@@ -14,14 +14,7 @@ import { Scan, Info, ExternalLink } from 'lucide-react-native';
 import { HoneyDropAnimation } from '@/components/HoneyDropAnimation';
 import { useScan } from '@/context/ScanContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { hasNoCategory, scoreBreakdown } from '@/utils/scoring';
-
-// Mêmes seuils que les gouttes de HoneyDropAnimation.
-function verdict(score: number) {
-  if (score >= 80) return { label: 'Excellent miel', color: '#B8860B' };
-  if (score >= 50) return { label: 'Miel correct', color: '#E08A00' };
-  return { label: 'Miel à éviter', color: '#D9472B' };
-}
+import { hasNoCategory, scoreBreakdown, verdict } from '@/utils/scoring';
 
 function formatPoints(points: number) {
   return points > 0 ? `+${points}` : `${points}`;

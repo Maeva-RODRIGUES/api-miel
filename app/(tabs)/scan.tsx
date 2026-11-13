@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { computeScore } from '@/utils/scoring';
 
 export default function ScanScreen() {
-  const { setLastScan } = useScan();
+  const { addScan } = useScan();
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
@@ -58,7 +58,7 @@ export default function ScanScreen() {
       if (product) {
         // Le résultat est rangé dans le contexte : l'écran Résultats le lit
         // directement, sans paramètres d'URL.
-        setLastScan({ product, score: computeScore(product) });
+        addScan({ product, score: computeScore(product) });
         router.navigate('/results');
       } else {
         Alert.alert(

@@ -11,7 +11,9 @@ import {
   HISTORY_STORAGE_KEY,
   type HistoryEntry,
   addToHistory,
+  clearHistoryKeepingFavorites,
   parseHistory,
+  toggleFavorite as toggleFavoriteIn,
 } from '@/utils/history';
 
 interface ScanContextValue {
@@ -21,7 +23,9 @@ interface ScanContextValue {
   /** Réaffiche un scan de l'historique, sans le dater à nouveau. */
   showScan: (scan: ScanResult) => void;
   history: HistoryEntry[];
+  /** Vide l'historique, sauf les favoris. */
   clearHistory: () => void;
+  toggleFavorite: (code: string) => void;
 }
 
 // Le contexte partage le dernier scan et l'historique entre les écrans,
@@ -59,19 +63,35 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
       );
   }, []);
 
-  const addScan = useCallback((scan: ScanResult) => {
-    setLastScan(scan);
-    setHistory((current) => {
-      const next = addToHistory(current, scan, Date.now());
-      saveHistory(next);
-      return next;
-    });
-  }, []);
+  const updateHistory = useCallback(
+    (change: (current: HistoryEntry[]) => HistoryEntry[]) => {
+      setHistory((current) => {
+        const next = change(current);
+        saveHistory(next);
+        return next;
+      });
+    },
+    [],
+  );
 
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    saveHistory([]);
-  }, []);
+  const clearHistory = useCallback(
+    () => updateHistory(clearHistoryKeepingFavorites),
+    [updateHistory],
+  );
+
+  const toggleFavorite = useCallback(
+    (code: string) =>
+      updateHistory((current) => toggleFavoriteIn(current, code)),
+    [updateHistory],
+  );
+
+  const addScan = useCallback(
+    (scan: ScanResult) => {
+      setLastScan(scan);
+      updateHistory((current) => addToHistory(current, scan, Date.now()));
+    },
+    [updateHistory],
+  );
 
   return (
     <ScanContext.Provider
@@ -81,6 +101,7 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
         showScan: setLastScan,
         history,
         clearHistory,
+        toggleFavorite,
       }}
     >
       {children}

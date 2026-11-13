@@ -1,6 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import type { Product, ScanResult } from '@/types/Product';
-import { HISTORY_LIMIT, addToHistory, parseHistory } from '@/utils/history';
+import {
+  HISTORY_LIMIT,
+  addToHistory,
+  clearHistoryKeepingFavorites,
+  parseHistory,
+  toggleFavorite,
+} from '@/utils/history';
 
 function scan(code: string, name = `Produit ${code}`): ScanResult {
   const product: Product = {
@@ -73,5 +79,51 @@ describe('parseHistory', () => {
     expect(parseHistory('pas du json')).toEqual([]);
     expect(parseHistory('{"a":1}')).toEqual([]);
     expect(parseHistory('[{"foo":1}]')).toEqual([]);
+  });
+});
+
+describe('favoris', () => {
+  it('ajoute puis retire un favori', () => {
+    let history = addToHistory([], scan('1'), 1000);
+    history = toggleFavorite(history, '1');
+    expect(history[0].favorite).toBe(true);
+    history = toggleFavorite(history, '1');
+    expect(history[0].favorite).toBe(false);
+  });
+
+  it('ne touche pas aux autres pots ni à un code inconnu', () => {
+    let history = addToHistory([], scan('1'), 1000);
+    history = addToHistory(history, scan('2'), 2000);
+    history = toggleFavorite(history, '1');
+    expect(history.find((e) => e.product.code === '2')?.favorite).toBeFalsy();
+    expect(toggleFavorite(history, 'inconnu')).toEqual(history);
+  });
+
+  it('garde l’étoile quand on rescanne un favori', () => {
+    let history = addToHistory([], scan('1'), 1000);
+    history = toggleFavorite(history, '1');
+    history = addToHistory(history, scan('1'), 2000);
+    expect(history[0].favorite).toBe(true);
+    expect(history[0].scannedAt).toBe(2000);
+  });
+
+  it('ne fait jamais sortir un favori à cause de la limite', () => {
+    let history = addToHistory([], scan('fav'), 0);
+    history = toggleFavorite(history, 'fav');
+    for (let i = 1; i <= HISTORY_LIMIT + 5; i++) {
+      history = addToHistory(history, scan(String(i)), i);
+    }
+    expect(history).toHaveLength(HISTORY_LIMIT);
+    expect(history.some((e) => e.product.code === 'fav')).toBe(true);
+    // Les plus anciens non favoris sont sortis en premier.
+    expect(history.some((e) => e.product.code === '1')).toBe(false);
+  });
+
+  it('effacer l’historique garde les favoris', () => {
+    let history = addToHistory([], scan('1'), 1000);
+    history = addToHistory(history, scan('2'), 2000);
+    history = toggleFavorite(history, '1');
+    const kept = clearHistoryKeepingFavorites(history);
+    expect(kept.map((e) => e.product.code)).toEqual(['1']);
   });
 });

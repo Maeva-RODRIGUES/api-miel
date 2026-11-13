@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Scan, Info, ExternalLink } from 'lucide-react-native';
+import { Scan, Info, ExternalLink, Star } from 'lucide-react-native';
 import { HoneyDropAnimation } from '@/components/HoneyDropAnimation';
 import { useScan } from '@/context/ScanContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,8 +41,11 @@ function ScanAnotherButton() {
 }
 
 export default function ResultsScreen() {
-  const { lastScan } = useScan();
+  const { lastScan, history, toggleFavorite } = useScan();
   const insets = useSafeAreaInsets();
+  const isFavorite = !!history.find(
+    (entry) => entry.product.code === lastScan?.product.code,
+  )?.favorite;
 
   return (
     <LinearGradient
@@ -87,6 +90,20 @@ export default function ResultsScreen() {
                   {lastScan.product.brands}
                 </Text>
               )}
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={() => toggleFavorite(lastScan.product.code)}
+                activeOpacity={0.8}
+              >
+                <Star
+                  size={18}
+                  color="#B8860B"
+                  fill={isFavorite ? '#FFD700' : 'transparent'}
+                />
+                <Text style={styles.favoriteText}>
+                  {isFavorite ? 'Dans vos favoris' : 'Ajouter aux favoris'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {lastScan.score ? (
@@ -224,6 +241,22 @@ const styles = StyleSheet.create({
   productCard: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  favoriteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#D4A574',
+  },
+  favoriteText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B4513',
   },
   productImage: {
     width: 160,
